@@ -6,6 +6,7 @@ start:
     xor bx, bx
     xor cx, cx
     xor dx, dx
+    mov sp, bp
 
     call get_input       ; Pobierz zakres od użytkownika
     mov dx, after_input
@@ -210,38 +211,47 @@ print_string:
 
 ;----------------------------------------------
 ; Procedura: print_number
-; Wypisuje liczbę z AX
+; Wypisuje liczbę z DX
 ;----------------------------------------------
 print_number:
     push ax
+    push cx
+    push dx
+
+    xor cx, cx
     mov bx, 10
-    jmp print_digit
-    
-print_digit:
     mov ax, dx
+    jmp get_digits
+    
+
+;----------------------------------------------
+; Procedura: get_digits
+; Dzieli liczbę przez 10 i zapisuje resztę na stosie
+;----------------------------------------------
+get_digits:
+    ; mov ax, dx
     xor dx, dx
-    div bx ; Ax - to co wypisujemy, dx - reszta, którą wypiszemy później
+    div bx
+    
+    push dx ; Zapisz resztę na stos
+    inc cx
 
     cmp ax, 0
-    je end_print_digit
+    je print_digits
 
-    push dx ; Zachowanie reszty na stosie
-    
-    mov dx, ax
-    add dx, "0"    ; Konwersja cyfry na znak
-    mov ah, 2
-    int 21h
+    jmp get_digits
 
-    pop dx ; Odczytanie reszty ze stosu
+print_digits:
+    pop dx
 
-    
-    jmp print_digit
-
-end_print_digit:
     add dx, "0"
     mov ah, 2
     int 21h
 
+    loop print_digits
+
+    pop dx
+    pop cx
     pop ax
     ret
 
