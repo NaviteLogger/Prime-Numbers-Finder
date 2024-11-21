@@ -18,6 +18,14 @@ start:
     mov ah, 0x4c 
     int 21h
 
+end:
+    call new_line
+    mov dx, end_msg
+    call print_string
+    call new_line
+    mov ax, 4Ch
+    int 21h
+
 ;----------------------------------------------
 ; Procedura: get_input
 ; Pobiera zakres od użytkownika
@@ -147,7 +155,10 @@ read_digit:
     cmp al, 13         ; Sprawdź, czy Enter (kod ASCII 13)
     je done_input      ; Jeśli Enter, zakończ wczytywanie
 
-    ; Idiotoodporność
+    ; Zabezpieczenie przed wprowadzeniem złegu znaku
+    cmp al, "#"        ; Znak kończący program
+    je end
+
     cmp al, "0"        ; Sprawdź, czy znak jest cyfrą
     jl invalid_input   ; Jeśli nie, zignoruj
 
@@ -163,7 +174,8 @@ read_digit:
     pop cx             ; Odczytaj wartość ze stosu
 
     cmp bx, cx         ; Sprawdź, czy nowa wartość mieści się w 16 bitach
-    jl overflow  ; Jeśli nie, zignoruj
+    ; technicznie w 15, bo pierwszy jest na znak (?)
+    jl overflow        ; Jeśli nie, zignoruj
 
     jmp read_digit     ; Kontynuuj wczytywanie kolejnych cyfr
     
@@ -254,6 +266,7 @@ section .data
     invalid_char_msg db "Nieprawidlowy znak. Wprowadz tylko cyfry.$"
     invalid_range_msg db "Nieprawidlowy zakres. Wprowadz dolny < gorny.$"
     prime_msg db "L. pierwsza: $"
+    end_msg db "Koniec programu.$"
     newline db 13, 10, '$'
 
 ;----------------------------------------------
